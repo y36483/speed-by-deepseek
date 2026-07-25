@@ -1,9 +1,8 @@
 --[[
-    脚本名称: 超高速跑者 (Speed Booster)
+    脚本名称: 超高速跑者 (WindUI Edition)
     作者: DeepSeek AI
     描述: 通过循环调用 StepTaken 事件，自动增加角色速度。
-    功能: 自定义增量、间隔、开始/暂停、可拖动UI、尺寸调节、彩虹文字。
-    版本: 最终版
+    界面风格: Windows 11 Fluent Design（毛玻璃、圆角、柔和阴影）
 ]]
 
 local CoreGui = game:GetService("CoreGui")
@@ -28,12 +27,9 @@ local floatingBtn = nil
 local titleLabel = nil
 local settingPanel = nil
 
--- 所有需要彩虹变色的文本控件
-local rainbowTexts = {}
-
 -- ===== 配置参数（默认尺寸） =====
-local uiWidth = 340
-local uiHeight = 280
+local uiWidth = 360
+local uiHeight = 300
 
 -- ===== 核心功能 =====
 local function fireStepTaken(value)
@@ -41,6 +37,15 @@ local function fireStepTaken(value)
         game:GetService("ReplicatedStorage").Remotes.StepTaken:FireServer(value, false)
     end)
     return success, err
+end
+
+-- ===== 辅助：创建毛玻璃效果（如果支持） =====
+local function applyGlassEffect(instance)
+    local blur = Instance.new("UIBlurEffect")
+    blur.Enabled = true
+    blur.Size = 20
+    blur.Parent = instance
+    return blur
 end
 
 -- ===== 创建浮动按钮（可拖动） =====
@@ -54,33 +59,39 @@ local function createFloatingButton()
 
     floatingBtn = Instance.new("TextButton")
     floatingBtn.Name = "FloatingToggle"
-    floatingBtn.Size = UDim2.new(0, 50, 0, 50)
-    floatingBtn.Position = UDim2.new(1, -70, 0, 50)
+    floatingBtn.Size = UDim2.new(0, 54, 0, 54)
+    floatingBtn.Position = UDim2.new(1, -78, 0, 60)
     floatingBtn.AnchorPoint = Vector2.new(0, 0)
     floatingBtn.Text = "⚡"
-    floatingBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+    floatingBtn.TextColor3 = Color3.fromRGB(30, 30, 30)
+    floatingBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     floatingBtn.BorderSizePixel = 0
     floatingBtn.Font = Enum.Font.GothamBold
-    floatingBtn.TextSize = 24
+    floatingBtn.TextSize = 26
     floatingBtn.Parent = screenGui
-    table.insert(rainbowTexts, floatingBtn)
 
-    -- 圆角+阴影
+    -- 圆角 + 阴影
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(1, 0)
     corner.Parent = floatingBtn
 
     local shadow = Instance.new("UIStroke")
-    shadow.Color = Color3.fromRGB(100, 100, 120)
+    shadow.Color = Color3.fromRGB(200, 200, 210)
     shadow.Thickness = 2
     shadow.Parent = floatingBtn
 
+    local shadowBlur = Instance.new("UIShadow")
+    shadowBlur.Blur = 12
+    shadowBlur.Offset = Vector2.new(0, 4)
+    shadowBlur.Transparency = 0.2
+    shadowBlur.Parent = floatingBtn
+
     -- 悬停
     floatingBtn.MouseEnter:Connect(function()
-        floatingBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+        floatingBtn.BackgroundColor3 = Color3.fromRGB(240, 240, 245)
     end)
     floatingBtn.MouseLeave:Connect(function()
-        floatingBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+        floatingBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     end)
 
     -- 拖动
@@ -128,61 +139,60 @@ local function createSettingPanel()
     if settingPanel then return end
 
     settingPanel = Instance.new("Frame")
-    settingPanel.Size = UDim2.new(0, 220, 0, 140)
-    settingPanel.Position = UDim2.new(0.5, -110, 0.5, -70)
+    settingPanel.Size = UDim2.new(0, 240, 0, 150)
+    settingPanel.Position = UDim2.new(0.5, -120, 0.5, -75)
     settingPanel.AnchorPoint = Vector2.new(0, 0)
-    settingPanel.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
-    settingPanel.BackgroundTransparency = 0.1
+    settingPanel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    settingPanel.BackgroundTransparency = 0.15
     settingPanel.BorderSizePixel = 0
     settingPanel.Visible = false
     settingPanel.Parent = mainFrame
 
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 10)
+    corner.CornerRadius = UDim.new(0, 14)
     corner.Parent = settingPanel
 
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = Color3.fromRGB(70, 70, 90)
-    stroke.Thickness = 1.5
-    stroke.Parent = settingPanel
+    local shadow = Instance.new("UIShadow")
+    shadow.Blur = 16
+    shadow.Offset = Vector2.new(0, 6)
+    shadow.Transparency = 0.3
+    shadow.Parent = settingPanel
 
     -- 标题
     local title = Instance.new("TextLabel")
-    title.Size = UDim2.new(1, 0, 0, 30)
-    title.Text = "⚙ 设置"
-    title.TextColor3 = Color3.fromRGB(255, 255, 255)
-    title.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
+    title.Size = UDim2.new(1, 0, 0, 32)
+    title.Text = "⚙ 调整尺寸"
+    title.TextColor3 = Color3.fromRGB(30, 30, 30)
+    title.BackgroundColor3 = Color3.fromRGB(240, 240, 245)
     title.Font = Enum.Font.GothamBold
     title.TextSize = 16
     title.Parent = settingPanel
-    table.insert(rainbowTexts, title)
 
     -- 宽度
     local wLabel = Instance.new("TextLabel")
     wLabel.Size = UDim2.new(0.3, 0, 0, 25)
     wLabel.Position = UDim2.new(0.05, 0, 0.3, 0)
     wLabel.Text = "宽度:"
-    wLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    wLabel.TextColor3 = Color3.fromRGB(60, 60, 70)
     wLabel.BackgroundTransparency = 1
     wLabel.Font = Enum.Font.Gotham
     wLabel.TextSize = 13
     wLabel.Parent = settingPanel
-    table.insert(rainbowTexts, wLabel)
 
     local wBox = Instance.new("TextBox")
     wBox.Size = UDim2.new(0.4, 0, 0, 25)
     wBox.Position = UDim2.new(0.5, 0, 0.3, 0)
     wBox.Text = tostring(uiWidth)
-    wBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-    wBox.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
-    wBox.BorderSizePixel = 0
+    wBox.TextColor3 = Color3.fromRGB(30, 30, 30)
+    wBox.BackgroundColor3 = Color3.fromRGB(245, 245, 250)
+    wBox.BorderSizePixel = 1
+    wBox.BorderColor3 = Color3.fromRGB(200, 200, 210)
     wBox.Font = Enum.Font.Gotham
     wBox.TextSize = 13
     wBox.Parent = settingPanel
-    table.insert(rainbowTexts, wBox)
 
     local wCorner = Instance.new("UICorner")
-    wCorner.CornerRadius = UDim.new(0, 5)
+    wCorner.CornerRadius = UDim.new(0, 6)
     wCorner.Parent = wBox
 
     -- 高度
@@ -190,44 +200,42 @@ local function createSettingPanel()
     hLabel.Size = UDim2.new(0.3, 0, 0, 25)
     hLabel.Position = UDim2.new(0.05, 0, 0.55, 0)
     hLabel.Text = "高度:"
-    hLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    hLabel.TextColor3 = Color3.fromRGB(60, 60, 70)
     hLabel.BackgroundTransparency = 1
     hLabel.Font = Enum.Font.Gotham
     hLabel.TextSize = 13
     hLabel.Parent = settingPanel
-    table.insert(rainbowTexts, hLabel)
 
     local hBox = Instance.new("TextBox")
     hBox.Size = UDim2.new(0.4, 0, 0, 25)
     hBox.Position = UDim2.new(0.5, 0, 0.55, 0)
     hBox.Text = tostring(uiHeight)
-    hBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-    hBox.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
-    hBox.BorderSizePixel = 0
+    hBox.TextColor3 = Color3.fromRGB(30, 30, 30)
+    hBox.BackgroundColor3 = Color3.fromRGB(245, 245, 250)
+    hBox.BorderSizePixel = 1
+    hBox.BorderColor3 = Color3.fromRGB(200, 200, 210)
     hBox.Font = Enum.Font.Gotham
     hBox.TextSize = 13
     hBox.Parent = settingPanel
-    table.insert(rainbowTexts, hBox)
 
     local hCorner = Instance.new("UICorner")
-    hCorner.CornerRadius = UDim.new(0, 5)
+    hCorner.CornerRadius = UDim.new(0, 6)
     hCorner.Parent = hBox
 
     -- 应用按钮
     local applyBtn = Instance.new("TextButton")
-    applyBtn.Size = UDim2.new(0.4, 0, 0, 30)
+    applyBtn.Size = UDim2.new(0.4, 0, 0, 32)
     applyBtn.Position = UDim2.new(0.05, 0, 0.8, 0)
     applyBtn.Text = "应用"
     applyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    applyBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 200)
+    applyBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 212)
     applyBtn.BorderSizePixel = 0
     applyBtn.Font = Enum.Font.GothamBold
     applyBtn.TextSize = 14
     applyBtn.Parent = settingPanel
-    table.insert(rainbowTexts, applyBtn)
 
     local applyCorner = Instance.new("UICorner")
-    applyCorner.CornerRadius = UDim.new(0, 5)
+    applyCorner.CornerRadius = UDim.new(0, 6)
     applyCorner.Parent = applyBtn
 
     applyBtn.MouseButton1Click:Connect(function()
@@ -257,43 +265,55 @@ local function createMainUI()
     mainFrame.Size = UDim2.new(0, uiWidth, 0, uiHeight)
     mainFrame.Position = UDim2.new(0.5, -uiWidth/2, 0.5, -uiHeight/2)
     mainFrame.AnchorPoint = Vector2.new(0, 0)
-    mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
-    mainFrame.BackgroundTransparency = 0.1
+    mainFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    mainFrame.BackgroundTransparency = 0.2
     mainFrame.BorderSizePixel = 0
     mainFrame.Parent = screenGui
 
+    -- 毛玻璃效果（模糊背景）
+    local blur = Instance.new("UIBlurEffect")
+    blur.Enabled = true
+    blur.Size = 20
+    blur.Parent = mainFrame
+
+    -- 圆角 + 阴影
     local mainCorner = Instance.new("UICorner")
-    mainCorner.CornerRadius = UDim.new(0, 12)
+    mainCorner.CornerRadius = UDim.new(0, 16)
     mainCorner.Parent = mainFrame
 
+    local mainShadow = Instance.new("UIShadow")
+    mainShadow.Blur = 20
+    mainShadow.Offset = Vector2.new(0, 8)
+    mainShadow.Transparency = 0.3
+    mainShadow.Parent = mainFrame
+
     local mainStroke = Instance.new("UIStroke")
-    mainStroke.Color = Color3.fromRGB(70, 70, 90)
+    mainStroke.Color = Color3.fromRGB(220, 220, 230)
     mainStroke.Thickness = 1.5
     mainStroke.Parent = mainFrame
 
     -- 标题栏（可拖动）
     local titleBar = Instance.new("Frame")
-    titleBar.Size = UDim2.new(1, 0, 0, 40)
-    titleBar.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
+    titleBar.Size = UDim2.new(1, 0, 0, 44)
+    titleBar.BackgroundColor3 = Color3.fromRGB(245, 245, 250)
     titleBar.BorderSizePixel = 0
     titleBar.Parent = mainFrame
 
     local titleCorner = Instance.new("UICorner")
-    titleCorner.CornerRadius = UDim.new(0, 12)
+    titleCorner.CornerRadius = UDim.new(0, 16)
     titleCorner.Parent = titleBar
 
     -- 齿轮按钮（左上角）
     local gearBtn = Instance.new("TextButton")
-    gearBtn.Size = UDim2.new(0, 30, 0, 30)
-    gearBtn.Position = UDim2.new(0, 8, 0, 5)
+    gearBtn.Size = UDim2.new(0, 32, 0, 32)
+    gearBtn.Position = UDim2.new(0, 8, 0, 6)
     gearBtn.Text = "⚙"
-    gearBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    gearBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+    gearBtn.TextColor3 = Color3.fromRGB(60, 60, 70)
+    gearBtn.BackgroundColor3 = Color3.fromRGB(235, 235, 240)
     gearBtn.BorderSizePixel = 0
     gearBtn.Font = Enum.Font.GothamBold
     gearBtn.TextSize = 18
     gearBtn.Parent = titleBar
-    table.insert(rainbowTexts, gearBtn)
 
     local gearCorner = Instance.new("UICorner")
     gearCorner.CornerRadius = UDim.new(0, 6)
@@ -305,31 +325,29 @@ local function createMainUI()
         end
     end)
 
-    -- 标题文字（修改为 超高速跑者）
+    -- 标题文字
     titleLabel = Instance.new("TextLabel")
-    titleLabel.Size = UDim2.new(1, -70, 1, 0)
-    titleLabel.Position = UDim2.new(0, 45, 0, 0)
-    titleLabel.Text = "⚡ 超高速跑者"   -- 修改处
-    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleLabel.Size = UDim2.new(1, -80, 1, 0)
+    titleLabel.Position = UDim2.new(0, 48, 0, 0)
+    titleLabel.Text = "⚡ 超高速跑者"
+    titleLabel.TextColor3 = Color3.fromRGB(30, 30, 40)
     titleLabel.BackgroundTransparency = 1
     titleLabel.Font = Enum.Font.GothamBold
     titleLabel.TextSize = 18
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
     titleLabel.Parent = titleBar
-    table.insert(rainbowTexts, titleLabel)
 
     -- 关闭按钮（右上角）
     local closeBtn = Instance.new("TextButton")
     closeBtn.Size = UDim2.new(0, 32, 0, 32)
-    closeBtn.Position = UDim2.new(1, -38, 0, 4)
+    closeBtn.Position = UDim2.new(1, -40, 0, 6)
     closeBtn.Text = "✕"
-    closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    closeBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+    closeBtn.TextColor3 = Color3.fromRGB(60, 60, 70)
+    closeBtn.BackgroundColor3 = Color3.fromRGB(235, 235, 240)
     closeBtn.BorderSizePixel = 0
     closeBtn.Font = Enum.Font.GothamBold
-    closeBtn.TextSize = 14
+    closeBtn.TextSize = 16
     closeBtn.Parent = titleBar
-    table.insert(rainbowTexts, closeBtn)
 
     local closeCorner = Instance.new("UICorner")
     closeCorner.CornerRadius = UDim.new(0, 6)
@@ -369,36 +387,35 @@ local function createMainUI()
 
     -- 内容区域
     local content = Instance.new("Frame")
-    content.Size = UDim2.new(1, 0, 1, -40)
-    content.Position = UDim2.new(0, 0, 0, 40)
+    content.Size = UDim2.new(1, 0, 1, -44)
+    content.Position = UDim2.new(0, 0, 0, 44)
     content.BackgroundTransparency = 1
     content.Parent = mainFrame
 
-    -- 辅助：创建带标签的输入框
+    -- 辅助：创建带标签的输入框（WindUI 风格）
     local function createLabeledInput(labelText, defaultText, yPos)
         local label = Instance.new("TextLabel")
         label.Size = UDim2.new(0.3, 0, 0, 30)
         label.Position = UDim2.new(0.05, 0, yPos, 0)
         label.Text = labelText
-        label.TextColor3 = Color3.fromRGB(200, 200, 200)
+        label.TextColor3 = Color3.fromRGB(40, 40, 50)
         label.BackgroundTransparency = 1
         label.Font = Enum.Font.Gotham
         label.TextSize = 14
         label.TextXAlignment = Enum.TextXAlignment.Left
         label.Parent = content
-        table.insert(rainbowTexts, label)
 
         local box = Instance.new("TextBox")
         box.Size = UDim2.new(0.5, 0, 0, 30)
         box.Position = UDim2.new(0.4, 0, yPos, 0)
         box.Text = defaultText
-        box.TextColor3 = Color3.fromRGB(255, 255, 255)
-        box.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
-        box.BorderSizePixel = 0
+        box.TextColor3 = Color3.fromRGB(30, 30, 30)
+        box.BackgroundColor3 = Color3.fromRGB(245, 245, 250)
+        box.BorderSizePixel = 1
+        box.BorderColor3 = Color3.fromRGB(210, 210, 220)
         box.Font = Enum.Font.Gotham
         box.TextSize = 14
         box.Parent = content
-        table.insert(rainbowTexts, box)
 
         local boxCorner = Instance.new("UICorner")
         boxCorner.CornerRadius = UDim.new(0, 6)
@@ -412,10 +429,11 @@ local function createMainUI()
 
     -- 状态和计数
     local statusFrame = Instance.new("Frame")
-    statusFrame.Size = UDim2.new(0.9, 0, 0, 36)
+    statusFrame.Size = UDim2.new(0.9, 0, 0, 40)
     statusFrame.Position = UDim2.new(0.05, 0, 0.45, 0)
-    statusFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
-    statusFrame.BorderSizePixel = 0
+    statusFrame.BackgroundColor3 = Color3.fromRGB(245, 245, 250)
+    statusFrame.BorderSizePixel = 1
+    statusFrame.BorderColor3 = Color3.fromRGB(220, 220, 230)
     statusFrame.Parent = content
 
     local statusCorner = Instance.new("UICorner")
@@ -426,29 +444,27 @@ local function createMainUI()
     statusLabel.Size = UDim2.new(0.6, 0, 1, 0)
     statusLabel.Position = UDim2.new(0.05, 0, 0, 0)
     statusLabel.Text = "状态: 就绪"
-    statusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    statusLabel.TextColor3 = Color3.fromRGB(40, 40, 50)
     statusLabel.BackgroundTransparency = 1
     statusLabel.Font = Enum.Font.Gotham
     statusLabel.TextSize = 14
     statusLabel.TextXAlignment = Enum.TextXAlignment.Left
     statusLabel.Parent = statusFrame
-    table.insert(rainbowTexts, statusLabel)
 
     countLabel = Instance.new("TextLabel")
     countLabel.Size = UDim2.new(0.3, 0, 1, 0)
     countLabel.Position = UDim2.new(0.65, 0, 0, 0)
     countLabel.Text = "发送: 0"
-    countLabel.TextColor3 = Color3.fromRGB(150, 200, 255)
+    countLabel.TextColor3 = Color3.fromRGB(0, 120, 212)
     countLabel.BackgroundTransparency = 1
     countLabel.Font = Enum.Font.Gotham
-    countLabel.TextSize = 13
+    countLabel.TextSize = 14
     countLabel.TextXAlignment = Enum.TextXAlignment.Right
     countLabel.Parent = statusFrame
-    table.insert(rainbowTexts, countLabel)
 
     -- 按钮容器
     local btnContainer = Instance.new("Frame")
-    btnContainer.Size = UDim2.new(0.9, 0, 0, 44)
+    btnContainer.Size = UDim2.new(0.9, 0, 0, 46)
     btnContainer.Position = UDim2.new(0.05, 0, 0.7, 0)
     btnContainer.BackgroundTransparency = 1
     btnContainer.Parent = content
@@ -459,12 +475,11 @@ local function createMainUI()
     startBtn.Position = UDim2.new(0, 0, 0, 0)
     startBtn.Text = "▶ 开始"
     startBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    startBtn.BackgroundColor3 = Color3.fromRGB(0, 180, 80)
+    startBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 212)
     startBtn.BorderSizePixel = 0
     startBtn.Font = Enum.Font.GothamBold
     startBtn.TextSize = 16
     startBtn.Parent = btnContainer
-    table.insert(rainbowTexts, startBtn)
 
     local startCorner = Instance.new("UICorner")
     startCorner.CornerRadius = UDim.new(0, 8)
@@ -476,12 +491,11 @@ local function createMainUI()
     pauseBtn.Position = UDim2.new(0.55, 0, 0, 0)
     pauseBtn.Text = "⏸ 暂停"
     pauseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    pauseBtn.BackgroundColor3 = Color3.fromRGB(220, 100, 50)
+    pauseBtn.BackgroundColor3 = Color3.fromRGB(200, 80, 60)
     pauseBtn.BorderSizePixel = 0
     pauseBtn.Font = Enum.Font.GothamBold
     pauseBtn.TextSize = 16
     pauseBtn.Parent = btnContainer
-    table.insert(rainbowTexts, pauseBtn)
 
     local pauseCorner = Instance.new("UICorner")
     pauseCorner.CornerRadius = UDim.new(0, 8)
@@ -492,21 +506,21 @@ local function createMainUI()
         btn.MouseEnter:Connect(function() btn.BackgroundColor3 = hoverColor end)
         btn.MouseLeave:Connect(function() btn.BackgroundColor3 = normalColor end)
     end
-    setupHover(startBtn, Color3.fromRGB(0, 180, 80), Color3.fromRGB(0, 210, 100))
-    setupHover(pauseBtn, Color3.fromRGB(220, 100, 50), Color3.fromRGB(240, 120, 70))
+    setupHover(startBtn, Color3.fromRGB(0, 120, 212), Color3.fromRGB(0, 140, 230))
+    setupHover(pauseBtn, Color3.fromRGB(200, 80, 60), Color3.fromRGB(220, 100, 80))
 
     -- 按钮事件
     startBtn.MouseButton1Click:Connect(function()
         local num = tonumber(valueBox.Text)
         if not num then
             statusLabel.Text = "⚠️ 无效数字"
-            statusLabel.TextColor3 = Color3.fromRGB(255, 200, 0)
+            statusLabel.TextColor3 = Color3.fromRGB(200, 120, 0)
             return
         end
         local interval = tonumber(intervalBox.Text)
         if not interval or interval <= 0 then
             statusLabel.Text = "⚠️ 间隔需大于0"
-            statusLabel.TextColor3 = Color3.fromRGB(255, 200, 0)
+            statusLabel.TextColor3 = Color3.fromRGB(200, 120, 0)
             return
         end
 
@@ -516,9 +530,9 @@ local function createMainUI()
         startBtn.Text = "⏳ 运行中"
         startBtn.BackgroundColor3 = Color3.fromRGB(200, 180, 0)
         pauseBtn.Text = "⏸ 暂停"
-        pauseBtn.BackgroundColor3 = Color3.fromRGB(220, 100, 50)
+        pauseBtn.BackgroundColor3 = Color3.fromRGB(200, 80, 60)
         statusLabel.Text = "状态: 运行中"
-        statusLabel.TextColor3 = Color3.fromRGB(0, 255, 100)
+        statusLabel.TextColor3 = Color3.fromRGB(0, 150, 80)
 
         sendCount = 0
         countLabel.Text = "发送: 0"
@@ -531,7 +545,7 @@ local function createMainUI()
                     countLabel.Text = "发送: " .. sendCount
                 else
                     statusLabel.Text = "❌ " .. err
-                    statusLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
+                    statusLabel.TextColor3 = Color3.fromRGB(200, 50, 50)
                     isRunning = false
                     break
                 end
@@ -539,11 +553,11 @@ local function createMainUI()
             end
             if not isRunning then
                 startBtn.Text = "▶ 开始"
-                startBtn.BackgroundColor3 = Color3.fromRGB(0, 180, 80)
+                startBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 212)
                 pauseBtn.Text = "⏸ 暂停"
-                pauseBtn.BackgroundColor3 = Color3.fromRGB(220, 100, 50)
+                pauseBtn.BackgroundColor3 = Color3.fromRGB(200, 80, 60)
                 statusLabel.Text = "状态: 已停止"
-                statusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+                statusLabel.TextColor3 = Color3.fromRGB(40, 40, 50)
             end
         end)
         coroutine.resume(loopThread)
@@ -553,56 +567,24 @@ local function createMainUI()
         if isRunning then
             isRunning = false
             startBtn.Text = "▶ 继续"
-            startBtn.BackgroundColor3 = Color3.fromRGB(0, 180, 80)
+            startBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 212)
             pauseBtn.Text = "⏸ 已暂停"
-            pauseBtn.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
+            pauseBtn.BackgroundColor3 = Color3.fromRGB(150, 150, 160)
             statusLabel.Text = "状态: 已暂停"
-            statusLabel.TextColor3 = Color3.fromRGB(255, 200, 0)
+            statusLabel.TextColor3 = Color3.fromRGB(200, 120, 0)
         end
     end)
 
     -- 底部提示
     local footer = Instance.new("TextLabel")
-    footer.Size = UDim2.new(0.9, 0, 0, 18)
+    footer.Size = UDim2.new(0.9, 0, 0, 20)
     footer.Position = UDim2.new(0.05, 0, 0.9, 0)
-    footer.Text = "点击⚡按钮可隐藏/显示 | 拖拽⚡移动 | ⚙调整尺寸"
+    footer.Text = "⚡拖动按钮 | 点击⚙调整尺寸"
     footer.TextColor3 = Color3.fromRGB(120, 120, 140)
     footer.BackgroundTransparency = 1
     footer.Font = Enum.Font.Gotham
     footer.TextSize = 11
     footer.TextXAlignment = Enum.TextXAlignment.Center
     footer.Parent = content
-    table.insert(rainbowTexts, footer)
 
-    -- 创建设置面板（作为主UI子对象）
-    createSettingPanel()
-
-    return mainFrame
-end
-
--- ===== 彩虹文字循环 =====
-local function startRainbowLoop()
-    local hue = 0
-    while true do
-        hue = (hue + 0.005) % 1
-        local color = Color3.fromHSV(hue, 1, 1)
-        for _, textObj in ipairs(rainbowTexts) do
-            if textObj and textObj.Parent then
-                if textObj:IsA("TextLabel") or textObj:IsA("TextButton") or textObj:IsA("TextBox") then
-                    textObj.TextColor3 = color
-                end
-            end
-        end
-        task.wait(0.05)
-    end
-end
-
--- ===== 初始化 =====
-wait(0.5)
-createFloatingButton()
-createMainUI()
-coroutine.wrap(startRainbowLoop)()
-
-print("✅ 超高速跑者 已加载")
-print("⚡ 拖动浮动按钮 | ⚙ 左上角齿轮调节尺寸")
-print("本脚本由 DeepSeek AI 生成")
+  

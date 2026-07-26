@@ -1,380 +1,101 @@
--- 加载 WindUI 库（带错误处理）
-local WindUI
-local success, err = pcall(function()
-    WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
-end)
+local p=game.Players.LocalPlayer;local RS=game:GetService("RunService")
+local function L(u) pcall(function() loadstring(game:HttpGet(u))() end) end
+local W;pcall(function() W=loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))() end)
+if not W then pcall(function() W=loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/main/main.lua"))() end) end
+if not W then return end
 
-if not success or not WindUI then
-    warn("WindUI加载失败: " .. tostring(err))
-    warn("尝试使用备用加载方式...")
-    
-    success, err = pcall(function()
-        WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/main/main.lua"))()
-    end)
-end
+local win=W:CreateWindow({Title="麟麟七脚本中心",Icon="door-open",Size=UDim2.fromOffset(340,480),Theme="Dark",ToggleKey=Enum.KeyCode.RightShift})
+local T1=win:Tab({Title="通用功能",Icon="settings"})
+local T2=win:Tab({Title="更多脚本",Icon="code"})
+local T3=win:Tab({Title="忍者传奇",Icon="swords"})
 
-if not WindUI then
-    local player = game.Players.LocalPlayer
-    local gui = Instance.new("ScreenGui")
-    gui.Parent = player:WaitForChild("PlayerGui")
-    
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 300, 0, 100)
-    frame.Position = UDim2.new(0.5, -150, 0.5, -50)
-    frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    frame.Parent = gui
-    
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, 0, 1, 0)
-    label.Text = "麟麟七脚本加载失败\n请检查网络连接或稍后再试"
-    label.TextSize = 16
-    label.TextColor3 = Color3.fromRGB(255, 255, 255)
-    label.BackgroundTransparency = 1
-    label.Parent = frame
-    
-    return
-end
+-- 穿墙
+local nc=false;local hc
+local function sc(s) local c=p.Character;if c then for _,o in ipairs(c:GetDescendants()) do if o:IsA("BasePart") then o.CanCollide=s end end end end
+T1:Toggle({Title="穿墙",Default=false,Callback=function(v) nc=v;if v then if not hc then hc=RS.Heartbeat:Connect(function() sc(false) end) end else if hc then hc:Disconnect();hc=nil end;sc(true) end end})
+p.CharacterAdded:Connect(function() if nc and not hc then hc=RS.Heartbeat:Connect(function() sc(false) end) end end)
+p.CharacterRemoving:Connect(function() if hc then hc:Disconnect();hc=nil end end)
 
--- 用于记录用户是否点击了"继续"按钮
-local Confirmed = false
+-- 速度
+local sp=16
+local function as(s) local c=p.Character;if c and c:FindFirstChild("Humanoid") then c.Humanoid.WalkSpeed=s end end
+p.CharacterAdded:Connect(function(c) if sp then (c:WaitForChild("Humanoid",5) or {}).WalkSpeed=sp end end)
+T1:Button({Title="设置速度: "..sp,Callback=function()
+    local g=Instance.new("ScreenGui",p.PlayerGui);local f=Instance.new("Frame",g)
+    f.Size=UDim2.new(0,240,0,130);f.Position=UDim2.new(0.5,-120,0.5,-65);f.BackgroundColor3=Color3.fromRGB(40,40,50);f.ZIndex=10
+    Instance.new("UICorner",f).CornerRadius=UDim.new(0,8)
+    local t=Instance.new("TextLabel",f);t.Size=UDim2.new(1,-20,0,25);t.Position=UDim2.new(0,10,0,5);t.BackgroundTransparency=1
+    t.Text="输入速度";t.TextColor3=Color3.new(1,1,1);t.TextSize=14;t.ZIndex=11
+    local b=Instance.new("TextBox",f);b.Size=UDim2.new(1,-40,0,32);b.Position=UDim2.new(0,20,0,35)
+    b.Text=tostring(sp);b.TextColor3=Color3.new(1,1,1);b.BackgroundColor3=Color3.fromRGB(60,60,70);b.ZIndex=11
+    Instance.new("UICorner",b).CornerRadius=UDim.new(0,4)
+    local function cl() g:Destroy() end
+    local o=Instance.new("TextButton",f);o.Size=UDim2.new(0,75,0,28);o.Position=UDim2.new(0.5,-85,0,90)
+    o.BackgroundColor3=Color3.fromRGB(80,130,220);o.Text="确定";o.TextColor3=Color3.new(1,1,1);o.ZIndex=11
+    Instance.new("UICorner",o).CornerRadius=UDim.new(0,4)
+    local c=Instance.new("TextButton",f);c.Size=UDim2.new(0,75,0,28);c.Position=UDim2.new(0.5,10,0,90)
+    c.BackgroundColor3=Color3.fromRGB(120,120,130);c.Text="取消";c.TextColor3=Color3.new(1,1,1);c.ZIndex=11
+    Instance.new("UICorner",c).CornerRadius=UDim.new(0,4)
+    o.MouseButton1Click:Connect(function() local n=tonumber(b.Text)
+        if n then n=math.floor(n);if n<1 then n=1 elseif n>2147483647 then n=2147483647 end
+        sp=n;as(n);W:CreateNotification({Title="速度",Content="已设为 "..n,Duration=2,Type="Success"}) end;cl() end)
+    c.MouseButton1Click:Connect(cl)
+end})
 
--- 创建欢迎弹窗
-WindUI:Popup({
-    Title = "🦊 麟麟七脚本",
-    Icon = "rocket",
-    Content = "通过 StepTaken 事件自动增加角色速度\n\n速度增量数值越大，单次增加越多\n发送间隔建议 0.05 ~ 0.1 秒",
-    Buttons = {
-        {
-            Title = "取消",
-            Callback = function() end,
-            Variant = "Secondary",
-        },
-        {
-            Title = "开始使用",
-            Icon = "arrow-right",
-            Callback = function() 
-                Confirmed = true
-                WindUI:Notification({
-                    Title = "提示",
-                    Content = "麟麟七脚本已启动！",
-                    Duration = 3,
-                    Type = "success",
-                })
-            end,
-            Variant = "Primary",
-        }
-    }
-})
+-- 扩展按钮
+local ext={{"IY指令","https://rawscripts.net/raw/Universal-Script-IY-mobile-136050"},{"无敌少侠","https://raw.githubusercontent.com/ke9460394-dot/ugik/refs/heads/main/%E6%97%A0%E6%95%8C%E5%B0%91%E4%BE%A0%E9%A3%9E%E8%A1%8Cr6.txt"},{"隐身1","https://pastebin.com/raw/3Rnd9rHf"},{"隐身2","https://pastebin.com/raw/vP6CrQJj"},{"防甩飞","https://raw.githubusercontent.com/Linux6699/DaHubRevival/main/AntiFling.lua"},{"甩飞所有人","https://pastebin.com/raw/zqyDSUWX"},{"管理员权限","https://pastebin.com/raw/sZpgTVas"},{"玩家进入提示","https://raw.githubusercontent.com/boyscp/scriscriptsc/main/bbn.lua"},{"死亡笔记","https://raw.githubusercontent.com/dingding123hhh/tt/main/%E6%AD%BB%E4%BA%A1%E7%AC%94%E8%AE%B0%20(1).txt"},{"铁拳","https://raw.githubusercontent.com/0Ben1/fe/main/obf_rf6iQURzu1fqrytcnLBAvW34C9N55kS9g9G3CKz086rC47M6632sEd4ZZYB0AYgV.lua.txt"}}
+for _,x in ipairs(ext) do T1:Button({Title=x[1],Callback=function() L(x[2]) end}) end
+T1:Button({Title="自杀",Callback=function() local c=p.Character;if c and c:FindFirstChild("Humanoid") then c.Humanoid.Health=0 end end})
 
--- 等待用户点击"继续"后再继续执行
-repeat task.wait() until Confirmed
+-- 更多脚本
+local scr={{"皮脚本",function() getgenv().XiaoPi="皮脚本QQ群1002100032" L("https://raw.githubusercontent.com/xiaopi77/xiaopi77/main/QQ1002100032-Roblox-Pi-script.lua") end},{"剑客V7",function() getgenv().Sword_Guest_V7="欢迎使用剑客V7" L("https://raw.githubusercontent.com/Zer0neK/Hello/refs/heads/main/SG-V7") end},{"落叶中心",function() getgenv().LS="落叶中心" L("https://raw.githubusercontent.com/krlpl/Deciduous-center-LS/main/%E8%90%BD%E5%8F%B6%E4%B8%AD%E5%BF%83%E6%B7%B7%E6%B7%86.txt") end},{"秋脚本",function() L("https://pastebin.com/raw/8f2LcqqP") L("https://raw.githubusercontent.com/WS857960/-/main/%E7%A7%8B%E8%87%AA%E5%88%B6%E8%84%9A%E6%9C%AC.txt") end},{"挽脚本",function() L("https://raw.githubusercontent.com/mtaskhh/script/refs/heads/main/Protected_9892402027124653.lua") end},{"黑白脚本",function() L("https://raw.githubusercontent.com/tfcygvunbind/Apple/main/黑白脚本加载器") end},{"叶脚本",function() L("https://raw.githubusercontent.com/roblox-ye/QQ515966991/refs/heads/main/ROBLOX-CNVIP-XIAOYE.lua") end},{"羽脚本",function() L("https://raw.githubusercontent.com/JY6812/-/refs/heads/main/%E7%BE%BD%E8%84%9A%E6%9C%ACv2.lua") end},{"新乌托邦",function() L("https://pastefy.app/M1Ns2Ggo/raw") end},{"忍脚本",function() L("https://raw.githubusercontent.com/renlua/shallow/main/Script_Hub.lua") end},{"情云脚本",function() L("https://raw.githubusercontent.com/ChinaQY/-/main/%E6%83%85%E4%BA%91") end},{"Apt脚本",function() L("https://raw.githubusercontent.com/nainshu/no/main/APT.lua") end},{"禁漫中心",function() getgenv().LS="禁漫中心" L("https://raw.githubusercontent.com/dingding123hhh/anlushanjinchangantangwanle/main/jmghjkknsbdbskkakwbebnfshdhhcyvtbrvrshwbshhshshsgsvsb.lua") end}}
+for _,x in ipairs(scr) do T2:Button({Title=x[1],Callback=x[2]}) end
 
--- 创建主窗口
-local Window = WindUI:CreateWindow({
-    Title = "🦊 麟麟七脚本",
-    Icon = "rocket",
-    Author = "DeepSeek AI",
-    Folder = "LinLinQi",
-    Size = UDim2.fromOffset(580, 460),
-    Transparent = true,
-    Theme = "Dark",
-    User = {
-        Enabled = true,
-        Callback = function() print("点击了用户按钮") end,
-        Anonymous = false
-    },
-    SideBarWidth = 200,
-    Background = "rbxassetid://8732036547",
-    HasOutline = true,
-})
+-- 忍者传奇-无限金币
+T3:Button({Title="无限金币",Callback=function()
+    local r=game:GetService("ReplicatedStorage"):WaitForChild("rEvents")
+    local ze=r:WaitForChild("zenMasterEvent");local ee=r:WaitForChild("elementMasteryEvent")
+    local function C(c,p) local o=Instance.new(c);for k,v in pairs(p or{})do o[k]=v end;o.Parent=p and p.Parent;return o end
+    local g=C("ScreenGui",p.PlayerGui);local m=C("Frame",g,{Size=UDim2.new(0,180,0,170),Position=UDim2.new(0.05,0,0.05,0),BackgroundColor3=Color3.fromRGB(50,50,50),Active=true,Draggable=true})
+    C("TextLabel",m,{Size=UDim2.new(1,0,0,18),BackgroundColor3=Color3.fromRGB(30,30,30),Text="Ninja Legends GUI",TextColor3=Color3.new(1,1,1),TextSize=10})
+    local function B(t,y,cb) local b=C("TextButton",m,{Size=UDim2.new(1,-10,0,20),Position=UDim2.new(0,5,0,y),BackgroundColor3=Color3.fromRGB(100,100,100),Text=t,TextColor3=Color3.new(1,1,1),TextSize=10});if cb then b.MouseButton1Click:Connect(cb) end;return b end
+    B("Start",55,function() ze:FireServer("convertGems",-9e999) end)
+    local e=C("TextBox",m,{Size=UDim2.new(1,-20,0,25),Position=UDim2.new(0,10,0,80),BackgroundColor3=Color3.fromRGB(80,80,80),Text="数字",TextColor3=Color3.new(1,1,1),TextSize=10,ClearTextOnFocus=true})
+    B("Submit",110,function() local n=tonumber(e.Text);if n and n>0 and n<=1e100 then ze:FireServer("convertGems",n) else e.Text="太大!" end end)
+    local d=B("Discord",135);d.BackgroundColor3=Color3.fromRGB(60,60,200);d.MouseButton1Click:Connect(function() setclipboard("https://discord.gg/notexttospeech") end)
+    local mg=C("ScreenGui",p.PlayerGui,{Enabled=false});local mf=C("Frame",mg,{Size=UDim2.new(0,250,0,400),Position=UDim2.new(0.2,0,0.2,0),BackgroundColor3=Color3.new(0,0,0),BackgroundTransparency=0.5,Active=true,Draggable=true})
+    C("TextLabel",mf,{Size=UDim2.new(1,0,0,30),BackgroundColor3=Color3.new(0,0,0),Text="大师元素",TextColor3=Color3.new(1,1,1),TextSize=14})
+    local sf=C("ScrollingFrame",mf,{Size=UDim2.new(1,0,1,-30),Position=UDim2.new(0,0,0,30),CanvasSize=UDim2.new(0,0,0,400),ScrollBarThickness=5,BackgroundTransparency=1})
+    local el={"Shadow Charge","Electral Chaos","Blazing Entity","Shadowfire","Lightning","Masterful Wrath","Inferno","Eternity Storm","Frost"}
+    for i,e in ipairs(el) do local b=C("TextButton",sf,{Size=UDim2.new(1,-20,0,30),Position=UDim2.new(0,10,0,(i-1)*35),BackgroundColor3=Color3.fromRGB(100,100,100),Text="Master "..e,TextColor3=Color3.new(1,1,1),TextSize=10});b.MouseButton1Click:Connect(function() ee:FireServer(e) end) end
+    local tb=B("切换大师元素",30);tb.MouseButton1Click:Connect(function() mg.Enabled=not mg.Enabled end)
+end})
 
--- 设置背景图片
-Window:SetBackgroundImage("rbxassetid://8732036547")
+-- 忍者传奇-宠物商店
+T3:Button({Title="宠物商店",Callback=function()
+    local pt={"Dark Vampy","Green Vampy","Purple Angel","Silver Dog","Purple Birdie","Blue Hedgehog","Phantom Soul Seeker","Hypersonic Pegasus","Shadows Edge Kitty","Eternity Legends Bunny","Divine Prophecy Dragon","Azure Wonder Kitty","Rising Abyss Birdie","Pink Stardust Dog","Ruby Midnight Wyvern","Destiny Heroes Golem","Ultra Chaos Fusion Dragon","Cybernetic Emerald Dragon","Ancient Millenium Bunny","Energized Skyraider Cerberus","Ultra Dimensions Bunny","Eternity Heroes Kitty","Phantom Genesis Dragon","Starstrike Overdrive Dragon","Royal Cosmo Pegasus","Winter Legends Polar Bear","Ultranova Firecaster","Frostwave Pegasus","Master Guardian Manticore","Dual Destiny Shadow Dragon","Ultimate Supernova Pegasus","Winter Wonder Kitty","Mini Chaos Legend","Christmas Sensei Reindeer","Twilight Magical Kitty","Cosmic Hunter Dragon","Dual Starlight Eclipse Dragon","Frostwave Legends Penguin","Sub-Zero Frost Hydra","Dark Lunar Leviathan","Ancient Inferno Kitty","Mini Vortex Legend","Unleashed Sub-Zero Dragon","Golden Sun Pegasus","Golden Strike Dragon","Gold Storm Manticore","Golden Sparks Dog","Master Underworld Phantom","Mystical Power Manticore","Underworld Duo Dragon","Golden Dawn Bunny","Teal Shadow Dragon","Dual Eternal Charge Dragon","Inner Focus Penguin","Darkstorm Elemental Hydra","Soul Focus Phantom","Masterful Strike Leviathan","Inner Peace Cerberus","Heatwave Shadow Penguin","Cybernetic Strike Leviathan","Zen Master Leviathan","Eternity Shadow Kitty","Lightning Bolt Bunny","Teal Thunderstorm Dragon","DRAGON: Nebula Skystorm","Mystic Shadows Dragon","Unlimited Secrets Master Dragon","Corrupted Elements Hydra","Dark Vortex Manticore","Cybernetic Showdown Dragon","Rising Millenium Hydra","Secret Shadows Leviathan","Shadow Eclipse Leviathan","Azure Series Omega Pegasus","Darkstar Eternal Kitty","CYBER: Ancient Master Wraith","Lightning Strike Phantom","Rising Dawn Midnight Wyvern","GLITCH: Awakened Nighthunter","Inner Darkness Hydra","Dark Blizzard Master Penguin","Cybernetic Sleigh Rider","Dual Warp Drive Dragon"}
+    local function bp(n) pcall(function() local r=game:GetService("ReplicatedStorage"):FindFirstChild("cPetShopRemote");local f=game:GetService("ReplicatedStorage"):FindFirstChild("cPetShopFolder");if r and f then local pet=f:FindFirstChild(n);if pet then r:InvokeServer(pet) end end end) end
+    local g=Instance.new("ScreenGui",p.PlayerGui);local m=Instance.new("Frame",g);m.Size=UDim2.new(0,280,0,400);m.Position=UDim2.new(0.3,0,0.2,0);m.BackgroundColor3=Color3.fromRGB(40,40,50);m.Active=true;m.Draggable=true
+    Instance.new("UICorner",m).CornerRadius=UDim.new(0,8)
+    local t=Instance.new("TextLabel",m);t.Size=UDim2.new(1,0,0,35);t.BackgroundColor3=Color3.fromRGB(60,60,80);t.Text="宠物商店 ("..#pt.."只)";t.TextColor3=Color3.new(1,1,1);t.TextSize=18
+    Instance.new("UICorner",t).CornerRadius=UDim.new(0,8)
+    local x=Instance.new("TextButton",m);x.Size=UDim2.new(0,24,0,24);x.Position=UDim2.new(1,-28,0,5);x.BackgroundColor3=Color3.fromRGB(200,60,60);x.Text="X";x.TextColor3=Color3.new(1,1,1);x.TextSize=14
+    Instance.new("UICorner",x).CornerRadius=UDim.new(0,12);x.MouseButton1Click:Connect(function() g:Destroy() end)
+    local ba=Instance.new("TextButton",m);ba.Size=UDim2.new(1,-20,0,30);ba.Position=UDim2.new(0,10,0,45);ba.BackgroundColor3=Color3.fromRGB(80,160,80);ba.Text="一键购买全部";ba.TextColor3=Color3.new(1,1,1);ba.TextSize=14
+    Instance.new("UICorner",ba).CornerRadius=UDim.new(0,6);ba.MouseButton1Click:Connect(function() for _,v in ipairs(pt) do bp(v);task.wait(0.3) end end)
+    local s=Instance.new("ScrollingFrame",m);s.Size=UDim2.new(1,-10,1,-85);s.Position=UDim2.new(0,5,0,80);s.CanvasSize=UDim2.new(0,0,0,#pt*32);s.ScrollBarThickness=6;s.BackgroundTransparency=1
+    local ll=Instance.new("UIListLayout",s);ll.Padding=UDim.new(0,4);ll.SortOrder=Enum.SortOrder.LayoutOrder
+    for i,v in ipairs(pt) do local b=Instance.new("TextButton",s);b.Size=UDim2.new(1,-4,0,28);b.LayoutOrder=i;b.BackgroundColor3=Color3.fromRGB(70,70,90);b.Text="购买 "..v;b.TextColor3=Color3.new(1,1,1);b.TextSize=13
+    Instance.new("UICorner",b).CornerRadius=UDim.new(0,4);b.MouseButton1Click:Connect(function() bp(v) end) end
+end})
 
--- ============ 让背景变透明的代码 ============
-spawn(function()
-    task.wait(1)
-    local player = game.Players.LocalPlayer
-    local playerGui = player:WaitForChild("PlayerGui")
-    
-    for _, screenGui in ipairs(playerGui:GetChildren()) do
-        if screenGui:IsA("ScreenGui") then
-            for _, descendant in ipairs(screenGui:GetDescendants()) do
-                if (descendant:IsA("ImageLabel") or descendant:IsA("ImageButton")) and descendant.Image == "rbxassetid://8732036547" then
-                    descendant.ImageTransparency = 0.5
-                end
-            end
-        end
-    end
-    
-    for _, descendant in ipairs(playerGui:GetDescendants()) do
-        if (descendant:IsA("ImageLabel") or descendant:IsA("ImageButton")) and descendant.Image == "rbxassetid://8732036547" then
-            descendant.ImageTransparency = 0.5
-        end
-    end
-end)
+-- 忍者传奇-自动训练
+local tr
+T3:Toggle({Title="自动训练",Default=false,Callback=function(v)
+    if v then
+        local function ef() local c=p.Character;if not c then return end;local t=nil;local bp=p:FindFirstChild("Backpack");if bp then for _,o in ipairs(bp:GetChildren()) do if o:IsA("Tool") then t=o;break end end end;if not t then for _,o in ipairs(c:GetChildren()) do if o:IsA("Tool") then t=o;break end end end;if t and c:FindFirstChild("Humanoid") then c.Humanoid:EquipTool(t) end end
+        ef();tr=RS.Stepped:Connect(function() ef();local ne=p:FindFirstChild("ninjaEvent");if ne then ne:FireServer("swingKatana") end end)
+    else if tr then tr:Disconnect();tr=nil end end
+end})
 
--- ============ 修改UI字体颜色为灰色 ============
-spawn(function()
-    task.wait(0.5)
-    local player = game.Players.LocalPlayer
-    local playerGui = player:WaitForChild("PlayerGui")
-    local grayColor = Color3.fromRGB(128, 128, 128)
-    
-    for _, screenGui in ipairs(playerGui:GetChildren()) do
-        if screenGui:IsA("ScreenGui") then
-            for _, descendant in ipairs(screenGui:GetDescendants()) do
-                if descendant:IsA("TextLabel") then
-                    if not descendant.Text:find("错误") and not descendant.Text:find("失败") then
-                        descendant.TextColor3 = grayColor
-                    end
-                end
-                if descendant:IsA("TextButton") then
-                    descendant.TextColor3 = grayColor
-                end
-                if descendant:IsA("TextBox") then
-                    descendant.TextColor3 = grayColor
-                end
-            end
-        end
-    end
-end)
-
--- 自定义"打开界面"按钮的样式
-Window:EditOpenButton({
-    Title = "打开麟麟七脚本",
-    Icon = "rocket",
-    CornerRadius = UDim.new(0, 16),
-    StrokeThickness = 2,
-    Color = ColorSequence.new(
-        Color3.fromHex("FF0F7B"),
-        Color3.fromHex("F89B29")
-    ),
-    Draggable = true,
-})
-
--- ============= 控制面板标签页 =============
-local MainTab = Window:Tab({
-    Title = "控制面板",
-    Icon = "gauge",
-})
-
--- ============= 速度设置区域 =============
-local SettingsSection = MainTab:Section({
-    Title = "速度设置",
-})
-
--- 速度增量输入框
-local SpeedInput = SettingsSection:Input({
-    Title = "速度增量",
-    Desc = "单次增加的速度值，数值越大效果越强",
-    Value = "10000000",
-    Type = "Input",
-})
-
--- 发送间隔输入框
-local IntervalInput = SettingsSection:Input({
-    Title = "发送间隔 (秒)",
-    Desc = "建议 0.05 ~ 0.1 秒，过快可能被限制",
-    Value = "0.05",
-    Type = "Input",
-})
-
--- ============= 运行状态区域 =============
-local StatusSection = MainTab:Section({
-    Title = "运行状态",
-})
-
--- 状态标签
-local StatusLabel = StatusSection:Label({
-    Title = "状态: 已停止",
-    Color = Color3.fromRGB(200, 200, 200),
-})
-
--- 计数标签
-local CountLabel = StatusSection:Label({
-    Title = "发送次数: 0",
-    Color = Color3.fromRGB(150, 200, 255),
-})
-
--- ============= 控制区域 =============
-local ControlSection = MainTab:Section({
-    Title = "控制",
-})
-
--- 核心变量
-local isRunning = false
-local loopThread = nil
-local sendCount = 0
-
--- 发送事件函数
-local function fireStepTaken(value)
-    local success, err = pcall(function()
-        game:GetService("ReplicatedStorage").Remotes.StepTaken:FireServer(value, false)
-    end)
-    return success, err
-end
-
--- 更新状态
-local function updateStatus(text, color)
-    StatusLabel:SetText("状态: " .. text)
-    if color then StatusLabel:SetColor(color) end
-end
-
-local function updateCount()
-    CountLabel:SetText("发送次数: " .. sendCount)
-end
-
--- 启动循环
-local function startLoop()
-    if isRunning then
-        WindUI:Notification({
-            Title = "提示",
-            Content = "加速已在运行中",
-            Duration = 2,
-            Type = "info",
-        })
-        return
-    end
-
-    local num = tonumber(SpeedInput:GetValue())
-    if not num or num <= 0 then
-        WindUI:Popup({
-            Title = "错误",
-            Content = "请输入有效的速度增量",
-            Icon = "x-circle",
-            Buttons = {{Title = "确定", Variant = "Primary"}}
-        })
-        return
-    end
-
-    local interval = tonumber(IntervalInput:GetValue())
-    if not interval or interval <= 0 then
-        WindUI:Popup({
-            Title = "错误",
-            Content = "请输入有效的间隔时间",
-            Icon = "x-circle",
-            Buttons = {{Title = "确定", Variant = "Primary"}}
-        })
-        return
-    end
-
-    isRunning = true
-    sendCount = 0
-    updateCount()
-    updateStatus("运行中...", Color3.fromRGB(0, 255, 100))
-    
-    StartButton:SetTitle("⏳ 运行中")
-    StopButton:SetTitle("⏹ 停止")
-    
-    WindUI:Notification({
-        Title = "加速已启动",
-        Content = string.format("速度增量: %d, 间隔: %.2fs", num, interval),
-        Duration = 2,
-        Type = "success",
-    })
-
-    loopThread = coroutine.create(function()
-        while isRunning do
-            local success, err = fireStepTaken(num)
-            if success then
-                sendCount = sendCount + 1
-                updateCount()
-            else
-                updateStatus("错误: " .. err, Color3.fromRGB(255, 80, 80))
-                isRunning = false
-                StartButton:SetTitle("▶ 开始")
-                StopButton:SetTitle("⏹ 停止")
-                WindUI:Popup({
-                    Title = "错误",
-                    Content = "发送失败: " .. err,
-                    Icon = "x-circle",
-                    Buttons = {{Title = "确定", Variant = "Primary"}}
-                })
-                break
-            end
-            task.wait(interval)
-        end
-        if not isRunning then
-            updateStatus("已停止", Color3.fromRGB(200, 200, 200))
-            StartButton:SetTitle("▶ 开始")
-            StopButton:SetTitle("⏹ 停止")
-        end
-    end)
-    coroutine.resume(loopThread)
-end
-
--- 停止循环
-local function stopLoop()
-    if isRunning then
-        isRunning = false
-        updateStatus("已暂停", Color3.fromRGB(255, 200, 0))
-        StartButton:SetTitle("▶ 继续")
-        WindUI:Notification({
-            Title = "加速已暂停",
-            Content = string.format("共发送 %d 次", sendCount),
-            Duration = 2,
-            Type = "info",
-        })
-    else
-        WindUI:Notification({
-            Title = "提示",
-            Content = "加速未在运行",
-            Duration = 2,
-            Type = "info",
-        })
-    end
-end
-
--- 开始按钮
-local StartButton = ControlSection:Button({
-    Title = "▶ 开始",
-    Description = "开始循环发送速度增量",
-    Callback = startLoop,
-})
-
--- 停止按钮
-local StopButton = ControlSection:Button({
-    Title = "⏹ 停止",
-    Description = "停止循环发送",
-    Callback = stopLoop,
-    Variant = "Secondary",
-})
-
--- ============= 提示标签页 =============
-local InfoTab = Window:Tab({
-    Title = "提示",
-    Icon = "info",
-})
-
-local InfoSection = InfoTab:Section({
-    Title = "使用说明",
-})
-
-InfoSection:Label({
-    Title = "💡 点击右上角 ⚡ 按钮可随时隐藏/显示窗口",
-    Color = Color3.fromRGB(150, 150, 180),
-})
-
-InfoSection:Label({
-    Title = "💡 拖拽标题栏可移动窗口位置",
-    Color = Color3.fromRGB(150, 150, 180),
-})
-
-InfoSection:Label({
-    Title = "💡 速度增量越大，单次增加的速度越多",
-    Color = Color3.fromRGB(150, 150, 180),
-})
-
-InfoSection:Label({
-    Title = "💡 发送间隔建议 0.05 ~ 0.1 秒",
-    Color = Color3.fromRGB(150, 150, 180),
-})
-
-InfoSection:Label({
-    Title = "🦊 麟麟七脚本 - 助你成为最强跑者！",
-    Color = Color3.fromRGB(255, 200, 100),
-})
-
-print("✅ 麟麟七脚本 已加载")
-print("本脚本由 DeepSeek AI 生成")
+if W.Init then W:Init() end

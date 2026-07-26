@@ -1,9 +1,66 @@
--- 麟麟七脚本中心（卡密失败3次踢出 + 炫酷验证 + WindUI）
+-- 麟麟七脚本中心（新增16个通用功能 + 滑动彩虹提示 + 音效）
 local p=game.Players.LocalPlayer local RS=game:GetService("RunService")local UIS=game:GetService("UserInputService")local TS=game:GetService("TweenService")
 local key="007牛逼"local verified=false local failCount=0
 local rnb={Color3.new(1,0,0),Color3.new(1,0.5,0),Color3.new(1,1,0),Color3.new(0,1,0),Color3.new(0,1,1),Color3.new(0,0,1),Color3.new(0.55,0,1),Color3.new(1,0,1)}
 
--- ==================== 炫酷卡密验证（含踢出逻辑） ====================
+-- 开关音效ID
+local SOUND_ON = "rbxassetid://9117502643"
+local SOUND_OFF = "rbxassetid://9117502643"
+
+-- 滑动彩虹提示+音效
+local function showTip(message, isOn)
+    local soundId = isOn and SOUND_ON or SOUND_OFF
+    local sound = Instance.new("Sound", p:WaitForChild("PlayerGui"))
+    sound.SoundId = soundId sound.Volume = 0.5 sound:Play()
+    game:GetService("Debris"):AddItem(sound, 2)
+
+    local tipGui = Instance.new("ScreenGui", p:WaitForChild("PlayerGui"))
+    tipGui.IgnoreGuiInset = true
+    local tipFrame = Instance.new("Frame", tipGui)
+    tipFrame.Size = UDim2.new(0, 200, 0, 36)
+    tipFrame.Position = UDim2.new(1, 10, 1, -46)
+    tipFrame.BackgroundColor3 = Color3.new(1,1,1)
+    tipFrame.BackgroundTransparency = 1
+    tipFrame.BorderSizePixel = 0
+    Instance.new("UICorner", tipFrame).CornerRadius = UDim.new(0, 8)
+    local tipGrad = Instance.new("UIGradient", tipFrame)
+    local tipLabel = Instance.new("TextLabel", tipFrame)
+    tipLabel.Size = UDim2.new(1, 0, 1, 0)
+    tipLabel.BackgroundTransparency = 1
+    tipLabel.Text = message
+    tipLabel.TextColor3 = Color3.new(1,1,1)
+    tipLabel.TextSize = 14
+    tipLabel.Font = Enum.Font.GothamBold
+    tipLabel.TextTransparency = 1
+
+    TS:Create(tipFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(1, -210, 1, -46)}):Play()
+    TS:Create(tipFrame, TweenInfo.new(0.3), {BackgroundTransparency = 0.7}):Play()
+    TS:Create(tipLabel, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
+
+    local stop = false
+    spawn(function()
+        local off = 0
+        while not stop do
+            off = (off + 0.02) % 1
+            local c1 = rnb[math.floor(off * 8) % 8 + 1]
+            local c2 = rnb[math.floor((off + 0.5) * 8) % 8 + 1]
+            tipGrad.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, c1), ColorSequenceKeypoint.new(1, c2)})
+            tipGrad.Rotation = off * 360
+            tipLabel.TextColor3 = rnb[math.floor(off * 8) % 8 + 1]
+            task.wait(0.05)
+        end
+    end)
+
+    task.wait(2)
+    stop = true
+    TS:Create(tipFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = UDim2.new(1, 10, 1, -46)}):Play()
+    TS:Create(tipFrame, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
+    TS:Create(tipLabel, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+    task.wait(0.4)
+    tipGui:Destroy()
+end
+
+-- 炫酷卡密验证
 local kg=Instance.new("ScreenGui",p:WaitForChild("PlayerGui"))kg.IgnoreGuiInset=true
 local overlay=Instance.new("Frame",kg)overlay.Size=UDim2.new(1,0,1,0)overlay.BackgroundColor3=Color3.new(0,0,0)overlay.BackgroundTransparency=0.85 overlay.BorderSizePixel=0
 local mf=Instance.new("Frame",kg)mf.Size=UDim2.new(0,300,0,220)mf.Position=UDim2.new(0.5,-150,0.5,-110)mf.BackgroundColor3=Color3.fromRGB(20,20,30)mf.BackgroundTransparency=0.4 mf.BorderSizePixel=0
@@ -35,7 +92,6 @@ local function verify()
     else
         failCount=failCount+1
         if failCount>=3 then
-            -- 达到上限，踢出玩家
             hl.Text="❌ 验证失败已达3次，即将退出游戏..."
             vb.Text="⛔ 踢出"
             vbGrad.Color=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(1,0,0)),ColorSequenceKeypoint.new(1,Color3.fromRGB(0.5,0,0))})
@@ -56,7 +112,6 @@ end
 vb.MouseButton1Click:Connect(verify)
 ibx.FocusLost:Connect(function(ep)if ep then verify()end end)
 
--- 渐变动画
 spawn(function()
     local off=0
     while not verified do
@@ -79,7 +134,7 @@ end)
 
 repeat task.wait()until verified
 
--- ==================== 加载WindUI完整版 ====================
+-- WindUI
 local W
 pcall(function()W=loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()end)
 if not W then pcall(function()W=loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/main/main.lua"))()end)end
@@ -98,13 +153,13 @@ local function cl()for _,h in ipairs(hl)do if h then h:Destroy()end end hl={}end
 local function sc()for _,pl in ipairs(game.Players:GetPlayers())do if pl~=p and pl.Character then ah(pl.Character)end end end
 local function st(n)if cm[n]then ec=cm[n]for _,h in ipairs(hl)do if h then h.OutlineColor=ec end end end end
 local lc
-T1:Toggle({Title="玩家透视",Default=false,Callback=function(v)esp=v if v then sc()if not lc then lc=RS.Heartbeat:Connect(function()if not esp then return end local n=tick()if n-lt<0.5 then return end lt=n sc()end)end else if lc then lc:Disconnect()lc=nil end cl()end end})
+T1:Toggle({Title="玩家透视",Default=false,Callback=function(v)esp=v if v then sc()if not lc then lc=RS.Heartbeat:Connect(function()if not esp then return end local n=tick()if n-lt<0.5 then return end lt=n sc()end)end else if lc then lc:Disconnect()lc=nil end cl()end showTip(v and "已开启 玩家透视" or "已关闭 玩家透视", v) end})
 T1:Dropdown({Title="透视颜色",Items=cn,Default="白色",Callback=function(v)st(v)end})
 
 -- 穿墙
 local nc=false local hc
 function sf(s)local c=p.Character if c then for _,o in ipairs(c:GetDescendants())do if o:IsA("BasePart")then o.CanCollide=s end end end end
-T1:Toggle({Title="穿墙",Default=false,Callback=function(v)nc=v if v then if not hc then hc=RS.Heartbeat:Connect(function()sf(false)end)end else if hc then hc:Disconnect()hc=nil end sf(true)end end})
+T1:Toggle({Title="穿墙",Default=false,Callback=function(v)nc=v if v then if not hc then hc=RS.Heartbeat:Connect(function()sf(false)end)end else if hc then hc:Disconnect()hc=nil end sf(true)end showTip(v and "已开启 穿墙" or "已关闭 穿墙", v) end})
 p.CharacterAdded:Connect(function()if nc and not hc then hc=RS.Heartbeat:Connect(function()sf(false)end)end end)
 
 -- 速度
@@ -120,12 +175,49 @@ T1:Button({Title="设置速度:"..sp,Callback=function()
     c.MouseButton1Click:Connect(function()g:Destroy()end)
 end})
 
--- 扩展
+-- 原扩展（保留）
 local ex={{"IY指令","https://rawscripts.net/raw/Universal-Script-IY-mobile-136050"},{"无敌少侠","https://raw.githubusercontent.com/ke9460394-dot/ugik/refs/heads/main/%E6%97%A0%E6%95%8C%E5%B0%91%E4%BE%A0%E9%A3%9E%E8%A1%8Cr6.txt"},{"隐身1","https://pastebin.com/raw/3Rnd9rHf"},{"隐身2","https://pastebin.com/raw/vP6CrQJj"},{"防甩飞","https://raw.githubusercontent.com/Linux6699/DaHubRevival/main/AntiFling.lua"},{"甩飞所有人","https://pastebin.com/raw/zqyDSUWX"},{"管理员权限","https://pastebin.com/raw/sZpgTVas"},{"玩家进入提示","https://raw.githubusercontent.com/boyscp/scriscriptsc/main/bbn.lua"},{"死亡笔记","https://raw.githubusercontent.com/dingding123hhh/tt/main/%E6%AD%BB%E4%BA%A1%E7%AC%94%E8%AE%B0%20(1).txt"},{"铁拳","https://raw.githubusercontent.com/0Ben1/fe/main/obf_rf6iQURzu1fqrytcnLBAvW34C9N55kS9g9G3CKz086rC47M6632sEd4ZZYB0AYgV.lua.txt"}}
 for _,x in ipairs(ex)do T1:Button({Title=x[1],Callback=function()L(x[2])end})end
 T1:Button({Title="自杀",Callback=function()local c=p.Character if c and c:FindFirstChild("Humanoid")then c.Humanoid.Health=0 end end})
 
--- 更多脚本24个
+-- 新增16个通用功能
+local newFuncs = {
+    {"飞行", "https://pastefy.app/z1mFBr9I/raw"},
+    {"飞檐走壁", "https://pastebin.com/raw/zXk4Rq2r"},
+    {"旋转", "https://raw.githubusercontent.com/dingding123hhh/tt/main/%E6%97%8B%E8%BD%AC.lua"},
+    {"阿尔宙斯同款自瞄", "https://raw.githubusercontent.com/dingding123hhh/sgbs/main/%E4%B8%81%E4%B8%81%20%E6%B1%89%E5%8C%96%E8%87%AA%E7%9E%84.txt"},
+    {"替身", "https://raw.githubusercontent.com/SkrillexMe/SkrillexLoader/main/SkrillexLoadMain"},
+    {"工具挂", "https://raw.githubusercontent.com/Bebo-Mods/BeboScripts/main/StandAwekening.lua"},
+    {"飞车", "https://raw.githubusercontent.com/dingding123hhh/vb/main/%E9%A3%9E%E8%BD%A6.lua"},
+    {"踏空行走", "https://raw.githubusercontent.com/GhostPlayer352/Test4/main/Float"},
+    {"飞车2", "https://pastebin.com/raw/G3GnBCyC"},
+    {"反挂机", "https://pastebin.com/raw/9fFu43FF"},
+    {"撸管(r6)", "https://pastefy.app/wa3v2Vgm/raw"},
+    {"撸管(r15)", "https://pastefy.app/YZoglOyJ/raw"},
+    {"解锁游戏通行证", "https://raw.githubusercontent.com/LX318/LX/main/%E8%A7%A3%E9%94%81%E6%B8%B8%E6%88%8F%E9%80%9A%E8%A1%8C%E8%AF%81%202.lua"},
+    {"骂人无违规", "rbxassetid://1262435912"},  -- 特殊处理，使用GetObjects
+    {"人物悬空", "https://raw.githubusercontent.com/GhostPlayer352/Test4/main/Float"},
+    {"c00likidd(客户端)", "rbxassetid://11801763945"}, -- 特殊处理
+}
+
+for _, func in ipairs(newFuncs) do
+    local name, url = func[1], func[2]
+    T1:Button({Title = name, Callback = function()
+        if url:find("rbxassetid://") then
+            pcall(function()
+                local obj = game:GetObjects(url)
+                if obj and obj[1] then
+                    local src = obj[1].Source
+                    loadstring(src)()
+                end
+            end)
+        else
+            L(url)
+        end
+    end})
+end
+
+-- 更多脚本24个（保持不变）
 local sr={{"皮脚本",function()getgenv().XiaoPi="皮脚本QQ群1002100032"L("https://raw.githubusercontent.com/xiaopi77/xiaopi77/main/QQ1002100032-Roblox-Pi-script.lua")end},{"剑客V7",function()L("https://raw.githubusercontent.com/Zer0neK/Hello/refs/heads/main/SG-V7")end},{"落叶中心",function()getgenv().LS="落叶中心"L("https://raw.githubusercontent.com/krlpl/Deciduous-center-LS/main/%E8%90%BD%E5%8F%B6%E4%B8%AD%E5%BF%83%E6%B7%B7%E6%B7%86.txt")end},{"秋脚本",function()L("https://pastebin.com/raw/8f2LcqqP")L("https://raw.githubusercontent.com/WS857960/-/main/%E7%A7%8B%E8%87%AA%E5%88%B6%E8%84%9A%E6%9C%AC.txt")end},{"挽脚本",function()L("https://raw.githubusercontent.com/mtaskhh/script/refs/heads/main/Protected_9892402027124653.lua")end},{"黑白脚本",function()L("https://raw.githubusercontent.com/tfcygvunbind/Apple/main/黑白脚本加载器")end},{"叶脚本",function()L("https://raw.githubusercontent.com/roblox-ye/QQ515966991/refs/heads/main/ROBLOX-CNVIP-XIAOYE.lua")end},{"羽脚本",function()L("https://raw.githubusercontent.com/JY6812/-/refs/heads/main/%E7%BE%BD%E8%84%9A%E6%9C%ACv2.lua")end},{"新乌托邦",function()L("https://pastefy.app/M1Ns2Ggo/raw")end},{"忍脚本",function()L("https://raw.githubusercontent.com/renlua/shallow/main/Script_Hub.lua")end},{"情云脚本",function()L("https://raw.githubusercontent.com/ChinaQY/-/main/%E6%83%85%E4%BA%91")end},{"Apt脚本",function()L("https://raw.githubusercontent.com/nainshu/no/main/APT.lua")end},{"禁漫中心",function()getgenv().LS="禁漫中心"L("https://raw.githubusercontent.com/dingding123hhh/anlushanjinchangantangwanle/main/jmghjkknsbdbskkakwbebnfshdhhcyvtbrvrshwbshhshshsgsvsb.lua")end},{"灰云脚本",function()_G.Clouduilib="白灰脚作者小云，加载出十几秒"L("https://raw.githubusercontent.com/CloudX-ScriptsWane/White-ash-script/main/%E7%99%BD%E7%81%B0%E8%84%9A%E6%9C%ACbeta.lua")end},{"导管中心",function()loadstring("\108\111\97\100\115\116\114\105\110\103\40\103\97\109\101\58\72\116\116\112\71\101\116\40\34\104\116\116\112\115\58\47\47\114\97\119\46\103\105\116\104\117\98\117\115\101\114\99\111\110\116\101\110\116\46\99\111\109\47\117\115\101\114\97\110\101\119\114\102\102\47\114\111\98\108\111\120\45\47\109\97\105\110\47\37\69\54\37\57\68\37\65\49\37\69\54\37\65\67\37\66\69\37\69\53\37\56\68\37\56\70\37\69\56\37\65\69\37\65\69\34\41\41\40\41\10")()end},{"北约脚本",function()L("https://raw.githubusercontent.com/USA868/114514-55-646-114514-88-61518-618-840-1018-634-10-4949-3457578401-615/main/Protected-36.lua")end},{"云脚本",function()L("https://raw.githubusercontent.com/XiaoYunCN/UWU/main/XiaoYun_currentedition_beta.lua")end},{"忍脚本2",function()L("https://pastebin.com/raw/1k7RAfQJ")end},{"bs轻量版",function()L("https://raw.githubusercontent.com/vbxfhcd/BS/refs/heads/main/BS-loves_you.txt")end},{"tubers93",function()L("https://raw.githubusercontent.com/Wbw1470619303-ctrl/w-/refs/heads/main/%E5%8F%AF%E4%BB%A5%E7%94%A8%E7%9A%84%E4%B8%BB%E8%84%9A%E6%9C%AC%E6%B7%B7%E6%B7%86%E5%90%8E%E7%9A%84.lua")end},{"北极脚本",function()L("https://pastebin.com/raw/KwARpDxV")end},{"syn脚本",function()L("https://pastebin.com/raw/tWGxhNq0")end},{"SA脚本",function()L("https://raw.githubusercontent.com/Bebo-Mods/BeboScripts/main/StandAwekening.lua")end},{"月抛脚本",function()L("https://pastefy.app/2uwPck6l/raw")end}}
 for _,x in ipairs(sr)do T2:Button({Title=x[1],Callback=x[2]})end
 
@@ -133,6 +225,6 @@ for _,x in ipairs(sr)do T2:Button({Title=x[1],Callback=x[2]})end
 T3:Button({Title="无限金币",Callback=function()pcall(function()game:GetService("ReplicatedStorage"):WaitForChild("rEvents"):WaitForChild("zenMasterEvent"):FireServer("convertGems",-9e999)end)end})
 T3:Button({Title="宠物商店",Callback=function()local pt={"Dark Vampy","Green Vampy","Purple Angel","Silver Dog","Purple Birdie","Blue Hedgehog"}for _,v in ipairs(pt)do pcall(function()local r=game:GetService("ReplicatedStorage"):FindFirstChild("cPetShopRemote")local f=game:GetService("ReplicatedStorage"):FindFirstChild("cPetShopFolder")if r and f then local p=f:FindFirstChild(v)if p then r:InvokeServer(p)end end end)task.wait(0.3)end end})
 local tr
-T3:Toggle({Title="自动训练",Default=false,Callback=function(v)if v then local function eq()local c=p.Character if c and c:FindFirstChild("Humanoid")then local t=nil local bp=p:FindFirstChild("Backpack")if bp then for _,o in ipairs(bp:GetChildren())do if o:IsA("Tool")then t=o break end end end if not t then for _,o in ipairs(c:GetChildren())do if o:IsA("Tool")then t=o break end end end if t then c.Humanoid:EquipTool(t)end end end eq()tr=RS.Stepped:Connect(function()eq()local ne=p:FindFirstChild("ninjaEvent")if ne then ne:FireServer("swingKatana")end end)else if tr then tr:Disconnect()tr=nil end end end})
+T3:Toggle({Title="自动训练",Default=false,Callback=function(v)if v then local function eq()local c=p.Character if c and c:FindFirstChild("Humanoid")then local t=nil local bp=p:FindFirstChild("Backpack")if bp then for _,o in ipairs(bp:GetChildren())do if o:IsA("Tool")then t=o break end end end if not t then for _,o in ipairs(c:GetChildren())do if o:IsA("Tool")then t=o break end end end if t then c.Humanoid:EquipTool(t)end end end eq()tr=RS.Stepped:Connect(function()eq()local ne=p:FindFirstChild("ninjaEvent")if ne then ne:FireServer("swingKatana")end end)else if tr then tr:Disconnect()tr=nil end end showTip(v and "已开启 自动训练" or "已关闭 自动训练", v) end})
 
 if W.Init then W:Init()end

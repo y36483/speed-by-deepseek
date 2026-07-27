@@ -1,8 +1,18 @@
--- 麟麟七脚本中心（最终版：秘密杀手 + 全部功能）
+-- 麟麟七脚本中心（添加坐标传送 + 全部功能）
 local p=game.Players.LocalPlayer local RS=game:GetService("RunService")local UIS=game:GetService("UserInputService")local TS=game:GetService("TweenService")
 local key="007牛逼"local verified=false local failCount=0
 local rnb={Color3.new(1,0,0),Color3.new(1,0.5,0),Color3.new(1,1,0),Color3.new(0,1,0),Color3.new(0,1,1),Color3.new(0,0,1),Color3.new(0.55,0,1),Color3.new(1,0,1)}
 local SOUND_ON="rbxassetid://9117502643"local SOUND_OFF="rbxassetid://9117502643"
+
+-- 获取注入器信息
+local function getExploit()
+    local success, result = pcall(function()
+        return identifyexecutor and identifyexecutor() or (getexecutorname and getexecutorname()) or "未知注入器"
+    end)
+    return success and result or "未知注入器"
+end
+local EXPLOIT = getExploit()
+local USERNAME = p.Name
 
 -- 彩虹提示
 local function showTip(m,isOn)
@@ -58,6 +68,9 @@ local win=W:CreateWindow({Title="麟麟七脚本中心",ToggleKey=Enum.KeyCode.R
 local T0=win:Tab({Title="公告",Icon="info"})local T1=win:Tab({Title="通用功能",Icon="settings"})local T2=win:Tab({Title="更多脚本",Icon="code"})local T3=win:Tab({Title="忍者传奇",Icon="swords"})local T4=win:Tab({Title="秘密杀手",Icon="users"})
 local function L(u)pcall(function()loadstring(game:HttpGet(u))()end)end
 
+-- 公告（显示注入器和用户名）
+T0:Button({Title="你的注入器: "..EXPLOIT,Callback=function()W:CreateNotification({Title="注入器信息",Content="正在使用: "..EXPLOIT,Duration=3,Type="Info"})end})
+T0:Button({Title="你的用户名: "..USERNAME,Callback=function()W:CreateNotification({Title="用户信息",Content="当前用户: "..USERNAME,Duration=3,Type="Info"})end})
 T0:Button({Title="2026/7/26第一次更新",Callback=function()W:CreateNotification({Title="更新",Content="新增11个脚本",Duration=3,Type="Info"})end})
 
 -- 透视
@@ -88,8 +101,8 @@ T1:Button({Title="设置速度:"..sp,Callback=function()
     o.MouseButton1Click:Connect(function()local n=tonumber(b.Text)if n then n=math.floor(n)if n<1 then n=1 elseif n>2147483647 then n=2147483647 end sp=n as(n)end g:Destroy()end)c.MouseButton1Click:Connect(function()g:Destroy()end)
 end})
 
--- 扩展功能
-local ex={{"IY指令","https://rawscripts.net/raw/Universal-Script-IY-mobile-136050"},{"无敌少侠","https://raw.githubusercontent.com/ke9460394-dot/ugik/refs/heads/main/%E6%97%A0%E6%95%8C%E5%B0%91%E4%BE%A0%E9%A3%9E%E8%A1%8Cr6.txt"},{"隐身1","https://pastebin.com/raw/3Rnd9rHf"},{"隐身2","https://pastebin.com/raw/vP6CrQJj"},{"防甩飞","https://raw.githubusercontent.com/Linux6699/DaHubRevival/main/AntiFling.lua"},{"甩飞所有人","https://pastebin.com/raw/zqyDSUWX"},{"管理员权限","https://pastebin.com/raw/sZpgTVas"},{"玩家进入提示","https://raw.githubusercontent.com/boyscp/scriscriptsc/main/bbn.lua"},{"死亡笔记","https://raw.githubusercontent.com/dingding123hhh/tt/main/%E6%AD%BB%E4%BA%A1%E7%AC%94%E8%AE%B0%20(1).txt"},{"铁拳","https://raw.githubusercontent.com/0Ben1/fe/main/obf_rf6iQURzu1fqrytcnLBAvW34C9N55kS9g9G3CKz086rC47M6632sEd4ZZYB0AYgV.lua.txt"},{"飞行","https://pastefy.app/z1mFBr9I/raw"},{"飞檐走壁","https://pastebin.com/raw/zXk4Rq2r"},{"旋转","https://raw.githubusercontent.com/dingding123hhh/tt/main/%E6%97%8B%E8%BD%AC.lua"},{"阿尔宙斯自瞄","https://raw.githubusercontent.com/dingding123hhh/sgbs/main/%E4%B8%81%E4%B8%81%20%E6%B1%89%E5%8C%96%E8%87%AA%E7%9E%84.txt"},{"替身","https://raw.githubusercontent.com/SkrillexMe/SkrillexLoader/main/SkrillexLoadMain"},{"工具挂","https://raw.githubusercontent.com/Bebo-Mods/BeboScripts/main/StandAwekening.lua"},{"飞车","https://raw.githubusercontent.com/dingding123hhh/vb/main/%E9%A3%9E%E8%BD%A6.lua"},{"踏空行走","https://raw.githubusercontent.com/GhostPlayer352/Test4/main/Float"},{"飞车2","https://pastebin.com/raw/G3GnBCyC"},{"反挂机","https://pastebin.com/raw/9fFu43FF"},{"撸管(r6)","https://pastefy.app/wa3v2Vgm/raw"},{"撸管(r15)","https://pastefy.app/YZoglOyJ/raw"},{"解锁通行证","https://raw.githubusercontent.com/LX318/LX/main/%E8%A7%A3%E9%94%81%E6%B8%B8%E6%88%8F%E9%80%9A%E8%A1%8C%E8%AF%81%202.lua"},{"骂人无违规","rbxassetid://1262435912"},{"人物悬空","https://raw.githubusercontent.com/GhostPlayer352/Test4/main/Float"},{"c00likidd","rbxassetid://11801763945"}}
+-- 扩展功能（包含坐标传送）
+local ex={{"IY指令","https://rawscripts.net/raw/Universal-Script-IY-mobile-136050"},{"无敌少侠","https://raw.githubusercontent.com/ke9460394-dot/ugik/refs/heads/main/%E6%97%A0%E6%95%8C%E5%B0%91%E4%BE%A0%E9%A3%9E%E8%A1%8Cr6.txt"},{"隐身1","https://pastebin.com/raw/3Rnd9rHf"},{"隐身2","https://pastebin.com/raw/vP6CrQJj"},{"防甩飞","https://raw.githubusercontent.com/Linux6699/DaHubRevival/main/AntiFling.lua"},{"甩飞所有人","https://pastebin.com/raw/zqyDSUWX"},{"管理员权限","https://pastebin.com/raw/sZpgTVas"},{"玩家进入提示","https://raw.githubusercontent.com/boyscp/scriscriptsc/main/bbn.lua"},{"死亡笔记","https://raw.githubusercontent.com/dingding123hhh/tt/main/%E6%AD%BB%E4%BA%A1%E7%AC%94%E8%AE%B0%20(1).txt"},{"铁拳","https://raw.githubusercontent.com/0Ben1/fe/main/obf_rf6iQURzu1fqrytcnLBAvW34C9N55kS9g9G3CKz086rC47M6632sEd4ZZYB0AYgV.lua.txt"},{"飞行","https://pastefy.app/z1mFBr9I/raw"},{"飞檐走壁","https://pastebin.com/raw/zXk4Rq2r"},{"旋转","https://raw.githubusercontent.com/dingding123hhh/tt/main/%E6%97%8B%E8%BD%AC.lua"},{"阿尔宙斯自瞄","https://raw.githubusercontent.com/dingding123hhh/sgbs/main/%E4%B8%81%E4%B8%81%20%E6%B1%89%E5%8C%96%E8%87%AA%E7%9E%84.txt"},{"替身","https://raw.githubusercontent.com/SkrillexMe/SkrillexLoader/main/SkrillexLoadMain"},{"工具挂","https://raw.githubusercontent.com/Bebo-Mods/BeboScripts/main/StandAwekening.lua"},{"飞车","https://raw.githubusercontent.com/dingding123hhh/vb/main/%E9%A3%9E%E8%BD%A6.lua"},{"踏空行走","https://raw.githubusercontent.com/GhostPlayer352/Test4/main/Float"},{"飞车2","https://pastebin.com/raw/G3GnBCyC"},{"反挂机","https://pastebin.com/raw/9fFu43FF"},{"撸管(r6)","https://pastefy.app/wa3v2Vgm/raw"},{"撸管(r15)","https://pastefy.app/YZoglOyJ/raw"},{"解锁通行证","https://raw.githubusercontent.com/LX318/LX/main/%E8%A7%A3%E9%94%81%E6%B8%B8%E6%88%8F%E9%80%9A%E8%A1%8C%E8%AF%81%202.lua"},{"骂人无违规","rbxassetid://1262435912"},{"人物悬空","https://raw.githubusercontent.com/GhostPlayer352/Test4/main/Float"},{"c00likidd","rbxassetid://11801763945"},{"坐标传送","https://raw.githubusercontent.com/y36483/x-y-z-/refs/heads/main/%E5%9D%90%E6%A0%87%E4%BC%A0%E9%80%81.lua"}}
 for _,x in ipairs(ex)do T1:Button({Title=x[1],Callback=function()if x[2]:find("rbxassetid://")then pcall(function()local obj=game:GetObjects(x[2])if obj and obj[1]then loadstring(obj[1].Source)()end end)else L(x[2])end end})end
 T1:Button({Title="自杀",Callback=function()local c=p.Character if c and c:FindFirstChild("Humanoid")then c.Humanoid.Health=0 end end})
 
